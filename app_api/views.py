@@ -241,6 +241,7 @@ def get_docs(request):
                 'id': doc.id,  # 文档ID
                 'name': doc.name,  # 文档名称
                 'parent_doc':doc.parent_doc, # 上级文档
+                'sort': doc.sort,  # 文档排序值
                 'top_doc':doc.top_doc, # 所属文集
                 'status':doc.status, # 文档状态
                 'create_time': doc.create_time,  # 文档创建时间
@@ -397,6 +398,7 @@ def get_self_docs(request):
                 'name': doc.name,  # 文档名称
                 'summary': remove_doc_tag(doc),
                 'parent_doc':doc.parent_doc, # 上级文档
+                'sort': doc.sort,  # 文档排序值
                 'top_doc':doc.top_doc, # 所属文集
                 'project_name':project.name,
                 'project_role':project.role,
@@ -437,6 +439,7 @@ def get_doc(request):
             "content": doc.content,  # 文档内容
             'md_content':doc.pre_content, # 文档内容
             'parent_doc':doc.parent_doc, # 上级文档
+            'sort': doc.sort,  # 文档排序值
             'top_doc':doc.top_doc, # 所属文集
             'project_name': project.name,
             'status':doc.status, # 文档状态
