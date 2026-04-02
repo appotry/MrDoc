@@ -330,6 +330,7 @@
     var dropdown = layui.dropdown;
     var element = layer.element;
     var pro_id = '{{project.id}}';
+    var doc_tree_click_mode = "{{doc_tree_click_mode | default:'open'}}";
     var csrf_token_str = '{{csrf_token}}';
     {% if request.user == project.create_user or request.user == doc.create_user or colla_user > 0 %}
         var is_creater = true;

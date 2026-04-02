@@ -308,6 +308,15 @@
                     </div>
                     <div class="layui-form-mid layui-word-aux">开启此选项，文集允许导出为EPUB和DOCX等格式文件以供下载，文集拥有者可进行进一步控制特定文集是否开放导出</div>
                   </div>
+                  <div class="layui-form-item">
+                      <label class="layui-form-label">目录点击行为</label>
+                      <div class="layui-input-block">
+                        <input type="radio" name="doc_tree_click_mode" value="open" title="{% trans '点击标题打开文档' %}" lay-filter="doc_tree_click_mode">
+                        <input type="radio" name="doc_tree_click_mode" value="expand" title="{% trans '点击标题展开目录' %}" lay-filter="doc_tree_click_mode">
+                      </div>
+                      <div class="layui-form-mid layui-word-aux">影响文集左侧目录树包含子文档的文档标题点击操作方式</div>
+                    </div>
+                    <hr>
 
                   <!-- 图片缩略开关 -->
                   <div class="layui-form-item">
@@ -412,6 +421,12 @@
   var form = layui.form;
   var element = layui.element;
   var layer = layui.layer;
+  var doc_tree_click_mode = "{{doc_tree_click_mode | default:'open'}}";
+
+  // 设置文档历史记录保留时间数据
+  form.val('global_doc_config',{
+    'doc_tree_click_mode':doc_tree_click_mode
+  })
 
   // 更新站点配置
   function updateConfig(data){
@@ -619,6 +634,7 @@
     }else{
       data_list.push({'type':'basic','name':'long_code','value':form_data.long_code})
     }
+    data_list.push({'type':'basic','name':'doc_tree_click_mode','value':form_data.doc_tree_click_mode});
 
     updateConfig(data_list)
   });

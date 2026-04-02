@@ -10,64 +10,97 @@ $.ajaxSetup({
 });
 
 // 生成文集目录
-getProjectToc = function(tree){
-    var toc_str = ""
-    for (var i = 0; i < tree.length; i++) {
-        var item = tree[i];
-        toc_str += '<li class="doctree-li">'
-        if(item.children != undefined && item.children.length > 0){ // 存在下级文档
-            li = '<div class="doctree-item-wrapper"><span class="doctree-item-name-wrapper has-children-icon">'
-            if(item.open_children){
-                toc_switch_icon = '<i class="layui-icon layui-icon-down switch-toc"></i>'
-            }else{
-                toc_switch_icon = '<i class="layui-icon layui-icon-right switch-toc"></i>'
-            }
-            li += toc_switch_icon
-            if(item.editor_mode == 5){
-                toc_doc_link = '<a href="' + item.pre_content +'" class="doc-link" title="'+ item.pre_content +'">' + item.name + '</a>'
-            }else if(item.editor_mode == 4){
-                toc_doc_link = '<a href="/doc/'+ item.id +'/" class="doc-link"'  + 'data-id="' + item.id + '" title="'+ item.name +'">' + item.name + '</a>'
-            }else{
-                toc_doc_link = '<a href="/doc/'+ item.id +'/" class="doc-link"'  + 'data-id="' + item.id + '" title="'+ item.name +'">' + item.name + '</a>'
-            }
-            toc_doc_link += '</span>'
-            if(is_creater){
-                addLink = `<button class="doctree-item-btn" data-id="${item.id}"><i class="layui-icon layui-icon-more"></i></button>`
-                toc_doc_link += addLink
-            }
-            li += toc_doc_link
-            if(item.open_children){
-                sub_str = '</div><div class="sub-items visible"><ul class="doctree-ul">'
-            }else{
-                sub_str = '</div><div class="sub-items"><ul class="doctree-ul">'
-            }
-            li += sub_str
-            toc_str += li
-            toc_str += getProjectToc(item['children'])
-            toc_str += '</ul></div>'
-        }else{//不存在下级文档
-            li = '<div class="doctree-item-wrapper"><span class="doctree-item-name-wrapper no-children-icon">'
-            if(item.editor_mode == 5){
-                toc_doc_link = '<a href="'+ item.pre_content +'" class="doc-link" title="'+ item.pre_content +'"><i class="layui-icon layui-icon-link"></i>&nbsp;' + item.name + '</a>'
-            }else if(item.editor_mode == 4){
-                toc_doc_link = '<a href="/doc/'+ item.id +'/" class="doc-link"'  + 'data-id="' + item.id + '" title="'+ item.name +'"><i class="iconfont mrdoc-icon-table"></i>&nbsp;' + item.name + '</a>'
-            }else if(item.editor_mode == 6){
-                toc_doc_link = '<a href="/doc/'+ item.id +'/" class="doc-link"'  + 'data-id="' + item.id + '" title="'+ item.name +'"><i class="layui-icon layui-icon-release"></i>&nbsp;' + item.name + '</a>'
-            }else{
-                toc_doc_link = '<a href="/doc/'+ item.id +'/" class="doc-link"'  + 'data-id="' + item.id + '" title="'+ item.name +'"><i class="iconfont mrdoc-icon-wendang"></i>&nbsp;' + item.name + '</a>'
-            }
-            toc_doc_link += '</span>'
-            if(is_creater){
-                addLink = `<button class="doctree-item-btn" data-id="${item.id}"><i class="layui-icon layui-icon-more"></i></button>`
-                toc_doc_link += addLink
-            }
-            li += toc_doc_link
-            toc_str += li
+function getProjectToc(tree) {
+    const clickMode = window.doc_tree_click_mode ?? 'open';
+    let html = '';
+
+    tree.forEach(item => {
+        const hasChildren = item.children && item.children.length > 0;
+        const isOpen = item.open_children;
+
+        html += `<li class="doctree-li">`;
+
+        // 主体内容
+        html += `
+            <div class="doctree-item-wrapper">
+                <span class="doctree-item-name-wrapper ${hasChildren ? 'has-children-icon' : 'no-children-icon'}">
+                    ${hasChildren ? renderSwitchIcon(isOpen) : ''}
+                    ${renderDocLink(item, clickMode, hasChildren)}
+                </span>
+                <span class="doctree-item-actions">
+                    ${renderDocOpenLink(item, clickMode, hasChildren)}
+                    ${renderMoreBtn(item)}
+                </span>
+            </div>
+        `;
+
+        // 子节点
+        if (hasChildren) {
+            html += `
+                <div class="sub-items ${isOpen ? 'visible' : ''}">
+                    <ul class="doctree-ul">
+                        ${getProjectToc(item.children)}
+                    </ul>
+                </div>
+            `;
         }
-        toc_str += '</li>'
-    };
-    return toc_str;
+
+        html += `</li>`;
+    });
+
+    return html;
 };
+
+function renderSwitchIcon(isOpen) {
+    const icon = isOpen ? 'layui-icon-down' : 'layui-icon-right';
+    return `<i class="layui-icon ${icon} switch-toc"></i>`;
+}
+
+function renderDocLink(item, clickMode, hasChildren) {
+    if (hasChildren && clickMode === 'expand') {
+        return `
+            <a href="javascript:void(0);"
+               class="doc-link doc-link-expand"
+               data-id="${item.id}"
+               title="${item.name}">
+               ${item.name}
+            </a>
+        `;
+    }
+
+    return `
+        <a href="${item.url}"
+           class="doc-link"
+           data-id="${item.id}"
+           title="${item.name}">
+           ${!hasChildren ? `<i class="${item.icon}"></i>&nbsp;` : ''}
+           ${item.name}
+        </a>
+    `;
+}
+
+function renderDocOpenLink(item,clickMode,hasChildren) {
+    if(clickMode === 'expand' && hasChildren){
+        return `
+        <a href="${item.url}"
+        class="doc-open-btn"
+        data-id="${item.id}"
+        title="查看文档">↗</a>
+    `;
+    }
+    return ``;
+
+}
+
+function renderMoreBtn(item) {
+    if (!window.is_creater) return '';
+
+    return `
+        <button class="doctree-item-btn" data-id="${item.id}">
+            <i class="layui-icon layui-icon-more"></i>
+        </button>
+    `;
+}
 
 // 视频iframe域名白名单
 var iframe_whitelist = '{{ iframe_whitelist }}'.split(',')
@@ -455,10 +488,16 @@ $(document).on('click', '.switch-toc', function () {
     parentLi.find('.sub-items').first().toggleClass('visible');
   });
 
-// $(".switch-toc-div").click(function(e){
-//     console.log(e)
-//     $(this).children("i").trigger('click')
-// });
+$(document).on('click', '.doc-link-expand', function (e) {
+    var parentWrapper = $(this).closest('.has-children-icon');
+    var switchBtn = parentWrapper.find('.switch-toc');
+    // 只有有子文档才拦截
+    if (switchBtn.length > 0) {
+        e.preventDefault();
+        // 触发已有逻辑
+        switchBtn.click();
+    }
+});
 
 // 展开文档树
 function openDocTree(){

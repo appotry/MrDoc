@@ -11,6 +11,21 @@ import io
 import subprocess
 import shutil
 
+# 编辑模式与图标class映射
+EDITOR_MODE_ICON_MAP = {
+    1:'iconfont mrdoc-icon-wendang',
+    2:'iconfont mrdoc-icon-wendang',
+    3:'iconfont mrdoc-icon-wendang',
+    4:'layui-icon layui-icon-table',
+    5:'layui-icon layui-icon-link',
+    6:'layui-icon layui-icon-release',
+    7:'iconfont mrdoc-icon-onlyoffice',
+    8:'layui-icon layui-icon-table',
+    9:'iconfont mrdoc-icon-mindmap-map',
+    10:'iconfont mrdoc-icon-drawio',
+    11:'layui-icon layui-icon-theme',
+}
+
 # 查找文档的下级文档
 def find_doc_next(doc_id):
     doc = Doc.objects.get(id=int(doc_id))  # 当前文档

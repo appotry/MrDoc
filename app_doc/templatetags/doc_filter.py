@@ -4,11 +4,37 @@
 from django import template
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import strip_tags
+from django.urls import reverse
 from app_doc.models import *
 import re
 import markdown
 
 register = template.Library()
+
+# 获取文档URL
+@register.filter
+def doc_url(doc):
+    # 统一获取属性的方法
+    def get_attr(obj, key, default=None):
+        if isinstance(obj, dict):
+            return obj.get(key, default)
+        return getattr(obj, key, default)
+
+    editor_mode = get_attr(doc, 'editor_mode')
+
+    # 特殊类型直接返回
+    if editor_mode == 5:
+        return get_attr(doc, 'pre_content')
+
+    alias = get_attr(doc, 'alias')
+    if alias:
+        return reverse("doc_alias", kwargs={"alias": alias})
+
+    doc_id = get_attr(doc, 'id')
+    if doc_id is not None:
+        return reverse("doc_id", kwargs={"doc_id": doc_id})
+
+    return ''
 
 # 获取文档的子文档
 @register.filter(name='get_next_doc')

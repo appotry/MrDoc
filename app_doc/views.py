@@ -22,7 +22,7 @@ from django.utils.translation import gettext_lazy as _
 from loguru import logger
 from app_api.serializers_app import *
 from app_doc.report_utils import *
-from app_doc.utils import check_user_project_writer_role
+from app_doc.utils import check_user_project_writer_role, EDITOR_MODE_ICON_MAP
 from app_admin.models import UserOptions,SysSetting
 from app_admin.decorators import check_headers,allow_report_file
 from app_admin.utils import is_zip_bomb
@@ -124,7 +124,8 @@ def get_pro_toc(pro_id):
             'id': doc['id'],
             'name': doc['name'],
             'open_children':doc['open_children'],
-            'editor_mode':doc['editor_mode']
+            'editor_mode':doc['editor_mode'],
+            'editor_icon': EDITOR_MODE_ICON_MAP[doc['editor_mode']]
         }
         # 如果一级文档存在下级文档，查询其二级文档
         if doc['id'] in parent_id_list:
@@ -140,7 +141,8 @@ def get_pro_toc(pro_id):
                     'id': doc['id'],
                     'name': doc['name'],
                     'open_children': doc['open_children'],
-                    'editor_mode': doc['editor_mode']
+                    'editor_mode': doc['editor_mode'],
+                    'editor_icon' : EDITOR_MODE_ICON_MAP[doc['editor_mode']]
                 }
                 # 如果二级文档存在下级文档，查询第三级文档
                 if doc['id'] in parent_id_list:
@@ -155,7 +157,8 @@ def get_pro_toc(pro_id):
                         item = {
                             'id': doc['id'],
                             'name': doc['name'],
-                            'editor_mode': doc['editor_mode']
+                            'editor_mode': doc['editor_mode'],
+                            'editor_icon': EDITOR_MODE_ICON_MAP[doc['editor_mode']]
                         }
                         sec_item['sub'].append(item)
                         n += 1

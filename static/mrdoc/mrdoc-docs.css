@@ -325,6 +325,7 @@ ul[data-type="taskList"] {
       border-radius: 5px;
       display:flex;
       flex-direction: row;
+      align-items: center;
   }
 
   #doc-container-sidebar .doctree-item-name-wrapper > i{
@@ -345,6 +346,14 @@ ul[data-type="taskList"] {
     margin-right: 5px;
     overflow: hidden;
     white-space: nowrap;
+    flex:1;
+  }
+
+  .doctree-item-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;  /* 不压缩，始终保持在右侧 */
+    gap: 2px;
   }
 
   #doc-container-sidebar .doctree-item-btn {
@@ -360,6 +369,11 @@ ul[data-type="taskList"] {
     cursor: pointer;
     background-color: #d8d8d8;
     border-radius: 3px;
+  }
+
+  #doc-container-sidebar .doc-open-btn{
+    display:none;
+    margin-right:10px;
   }
 
   #doc-container-sidebar .sub-items {
@@ -382,7 +396,11 @@ ul[data-type="taskList"] {
     color: #2176ff;
   }
 
-  #doc-container-sidebar .doctree-item-wrapper:hover > .doctree-item-btn{
+  #doc-container-sidebar .doctree-item-wrapper:hover > .doctree-item-actions > .doctree-item-btn{
+      display:block;
+  }
+
+  #doc-container-sidebar .doctree-item-wrapper:hover > .doctree-item-actions > .doc-open-btn{
       display:block;
   }
 
