@@ -31,6 +31,7 @@ import markdown
 import yaml
 import pathlib
 from urllib.parse import unquote
+from pathlib import Path
 
 
 # 替换前端传来的非法字符
@@ -289,22 +290,56 @@ class ReportEPUB():
         for iframe in iframe_tag:
             iframe_src = iframe.get('src')
             iframe.name = 'p'
-            iframe.string = _("本格式不支持iframe视频显示，视频地址为：{}".format(iframe_src))
+            iframe.string = "本格式不支持iframe视频显示，视频地址为：{}".format(str(iframe_src))
 
         # 替换HTML文本中静态文件的相对链接为绝对链接
         for src in src_tag:
             if src['src'].startswith("/"):
                 src_path = src['src'] # 媒体文件原始路径
-                src_filename = src['src'].split("/")[-1] # 媒体文件名
+
+                # 规范化路径,移除 ../ 等危险字符
+                src_path_normalized = os.path.normpath(src_path).lstrip(os.sep)
+
+                # 验证路径不包含路径穿越字符
+                if '..' in src_path_normalized or src_path_normalized.startswith('/'):
+                    logger.error(f"EPUB导出：检测到潜在路径穿越攻击: {src_path}")
+                    continue  # 跳过危险路径
+
+                # 限制允许的图片扩展名
+                file_ext = os.path.splitext(src_path_normalized)[1].lower().lstrip('.')
+                print(file_ext,settings.ALLOWED_IMG)
+                if file_ext not in settings.ALLOWED_IMG:
+                    logger.error(f"EPUB导出：不允许的文件类型: {src_path}")
+                    continue
+
+                src_filename = os.path.basename(src_path_normalized)
+
+                # 使用 Path 对象安全拼接路径
+                source_file = Path(settings.BASE_DIR) / src_path_normalized
+                dest_file = Path(self.base_path) / 'OEBPS' / 'Images' / src_filename
+
+                # 验证源文件在允许的目录内
+                try:
+                    source_file_resolved = source_file.resolve()
+                    base_dir_resolved = Path(settings.BASE_DIR).resolve()
+
+                    # 确保源文件在 BASE_DIR 内
+                    source_file_resolved.relative_to(base_dir_resolved)
+
+                except (ValueError, FileNotFoundError):
+                    logger.error(f"EPUB导出：文件不在允许的目录范围内: {src_path}")
+                    continue
+
                 src['src'] = '../Images/' + src_filename # 媒体文件在EPUB中的路径
                 # 复制文件到epub的Images文件夹
                 try:
-                    shutil.copyfile(
-                        src= settings.BASE_DIR + src_path,
-                        dst= self.base_path + '/OEBPS/Images/' + src_filename
-                    )
-                except FileNotFoundError as e:
-                    pass
+                    # 确保目标目录存在
+                    dest_file.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(source_file_resolved, dest_file)
+                except FileNotFoundError:
+                    logger.error(f"EPUB导出：源文件不存在: {source_file}")
+                except Exception as e:
+                    logger.error(f"EPUB导出：复制文件失败: {e}")
 
         # 创建写入临时HTML文件
         temp_file_path = self.base_path + '/OEBPS/Text/{0}.xhtml'.format(d.id)
