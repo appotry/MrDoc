@@ -23,6 +23,7 @@ import time,hashlib
 import traceback,json
 import datetime
 
+from app_doc.utils_ext.doc_content_sanitize import sanitize_html
 from app_doc.views import find_top_level_index
 
 
@@ -567,7 +568,7 @@ def create_doc(request):
             elif int(editor_mode) == 3:
                 doc = Doc.objects.create(
                     name=doc_title,  # 文档内容
-                    content=doc_content,  # 文档的编辑内容，意即编辑框输入的内容
+                    content=sanitize_html(doc_content),  # 文档的编辑内容，意即编辑框输入的内容
                     top_doc=project_id,  # 所属文集
                     editor_mode=editor_mode,  # 编辑器模式
                     parent_doc=parent_doc,  # 上级文档
@@ -632,7 +633,7 @@ def modify_doc(request):
         elif doc.editor_mode == 3: # 富文本文档
             Doc.objects.filter(id=int(doc_id)).update(
                 name=doc_title,
-                content=doc_content,
+                content=sanitize_html(doc_content),
                 parent_doc=parent_id,
                 modify_time=datetime.datetime.now(),
             )

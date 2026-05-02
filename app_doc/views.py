@@ -38,6 +38,8 @@ import hashlib
 import markdown
 import tempfile
 
+from app_doc.utils_ext.doc_content_sanitize import sanitize_html
+
 
 # HTML转义
 def jsonXssFilter(data):
@@ -1056,6 +1058,8 @@ def doc_index(request,pro_id=None,doc_id=None,doc=None):
         # 获取文档内容
         try:
             doc = Doc.objects.get(id=int(doc_id),status__in=[0,1]) # 文档信息
+            if doc.editor_mode ==3:
+                doc.content = sanitize_html(doc.content)
             doc_tags = DocTag.objects.filter(doc=doc) # 文档标签信息
             if doc.status == 0 and doc.create_user != request.user:
                 raise ObjectDoesNotExist
@@ -1237,6 +1241,8 @@ def modify_doc(request,doc_id):
 
             if doc_id != '' and project_id != '' and doc_name != '' and project_id != '-1':
                 doc = Doc.objects.get(id=doc_id)
+                if doc.editor_mode == 3:
+                    doc_content = sanitize_html(doc_content)
                 project = Project.objects.get(id=project_id)
                 pro_colla = ProjectCollaborator.objects.filter(project=project, user=request.user)
                 if pro_colla.count() == 0:
@@ -1741,6 +1747,8 @@ def share_doc(request):
         try:
             share_doc = DocShare.objects.get(token=share_token,is_enable=True)
             doc = share_doc.doc
+            if doc.editor_mode == 3:
+                doc.content = sanitize_html(doc.content)
             # 公开分享
             if share_doc.share_type == 0:
                 return render(request, 'app_doc/share/share_doc.html', locals())
@@ -3198,6 +3206,8 @@ def tag_doc(request,tag_id,doc_id):
     try:
         if tag_id != '' and doc_id != '':
             doc = Doc.objects.get(id=int(doc_id), status=1)
+            if doc.editor_mode == 3:
+                doc.content = sanitize_html(doc.content)
             # 获取文档的文集信息，以判断是否有权限访问
             project = Project.objects.get(id=int(doc.top_doc))
             # 获取文集的协作用户信息
